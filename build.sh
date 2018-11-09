@@ -26,9 +26,9 @@ DIR1=$HOME/development/Docker/build-rpi-docker-transmission-openvpn
 #-------------------------------------
 function Main ()
 {
-	echo "Please enter MANJAROPASSWORD:"
-	read MANJAROPASSWORD
-	docker build --build-arg MANJAROPASSWORD="$MANJAROPASSWORD" -t stiles/rpi-docker-transmission-openvpn:latest "$DIR1"
+#	echo "Please enter MANJAROPASSWORD:"
+#	read MANJAROPASSWORD
+	docker build -t stiles/rpi-docker-transmission-openvpn:latest "$DIR1"
 
 	docker push stiles/rpi-docker-transmission-openvpn:latest
 }	# end Main

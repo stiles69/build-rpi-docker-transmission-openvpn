@@ -1,45 +1,40 @@
 FROM resin/rpi-raspbian:stretch
 
 VOLUME /data
-#VOLUME /config
+VOLUME /config
 VOLUME /scripts
 VOLUME /packages
 
-ENV PASSWORD=abc
-ARG MANJAROPASSWORD
+#ARG MANJAROPASSWORD
 
 # Add unrar
 ADD packages /packages/
 
 # Update packages and install software
 RUN apt-get update \
-    && apt-get -y install transmission-cli transmission-common transmission-daemon \
-    && apt-get install -y dumb-init unzip openvpn curl ufw git tinyproxy jq openssh-client openssl sshpass vim \
-    && dpkg -i /packages/unrar_5.3.2-1+deb9u1_armhf.deb \
-
-    && curl -L -o /tmp/release.zip https://github.com/Secretmapper/combustion/archive/release.zip \
-    && unzip /tmp/release.zip -d /opt/transmission-ui/ \
-    && rm /tmp/release.zip \
-    && git clone https://github.com/stiles69/kettu.git /opt/transmission-ui/kettu \
-    && mkdir /opt/transmission-ui/transmission-web-control \
-    && curl -L https://github.com/stiles69/twc-release/raw/master/src.tar.gz \
-     | tar -C /opt/transmission-ui/transmission-web-control/ -xzv \
-    && apt-get purge git unzip \
-    && apt-get autoremove --purge\
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && curl -L https://github.com/jwilder/dockerize/releases/download/v0.6.0/dockerize-linux-armhf-v0.6.0.tar.gz \
-     | tar -C /usr/local/bin -xzv \
-    && mkdir -p /config/.ssh \
-    && groupmod -g 1000 users \
-    && useradd -u 911 -U -d /config -s /bin/bash abc \
-    && usermod -G users abc
+	&& apt-get -y install transmission-cli transmission-common transmission-daemon \
+	&& dpkg -i /packages/unrar_5.3.2-1+deb9u1_armhf.deb \
+	&& apt-get install -y dumb-init unzip openvpn curl ufw git tinyproxy jq openssh-client sshpass \
+	&& curl -L -o /tmp/release.zip https://github.com/Secretmapper/combustion/archive/release.zip \
+	&& unzip /tmp/release.zip -d /opt/transmission-ui/ \
+	&& rm /tmp/release.zip \
+	&& git clone git://github.com/endor/kettu.git /opt/transmission-ui/kettu \
+	&& mkdir /opt/transmission-ui/transmission-web-control \
+	&& curl -L https://github.com/ronggang/twc-release/raw/master/src.tar.gz \
+	 | tar -C /opt/transmission-ui/transmission-web-control/ -xzv \
+	&& apt-get purge git unzip \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+	&& curl -L https://github.com/jwilder/dockerize/releases/download/v0.6.0/dockerize-linux-armhf-v0.6.0.tar.gz \
+	  | tar -C /usr/local/bin -xzv \
+        && groupmod -g 1000 users \
+        && useradd -u 911 -U -d /config -s /bin/bash abc \
+        && usermod -G users abc 
 
 # Add configuration and scripts
 ADD openvpn/ /etc/openvpn/
 ADD transmission/ /etc/transmission/
 ADD tinyproxy /opt/tinyproxy/
 ADD bin/ /scripts/
-ADD abc/etc/ssh/ /etc/ssh/
 
 ENV OPENVPN_USERNAME=**None** \
     OPENVPN_PASSWORD=**None** \
@@ -125,22 +120,22 @@ ENV OPENVPN_USERNAME=**None** \
     UFW_EXTRA_PORTS= \
     UFW_DISABLE_IPTABLES_REJECT=false \
     TRANSMISSION_WEB_UI=combustion \
-    PUID=1001 \
-    PGID=996 \
+    PUID=1001\
+    PGID=100 \
     TRANSMISSION_WEB_HOME= \
     DROP_DEFAULT_ROUTE= \
     WEBPROXY_ENABLED=false \
     WEBPROXY_PORT=8888
 
-RUN usermod --password $PASSWORD abc
-
 # Create ssh-keys
-RUN ssh-keygen -t rsa -f /config/.ssh/id_rsa -t rsa -b 2048 -C DOCKER_ABC -q -P "" 
-ADD ssh/ /config/.ssh/
-RUN chmod 700 /config/.ssh
-RUN sshpass -p "$MANJAROPASSWORD" ssh -p 60001 brettsalemink@173.29.176.138 'cat >> .ssh/authorized_keys' < /config/.ssh/id_rsa.pub
+#RUN mkdir /config/.ssh
+#ADD ssh/ /config/.ssh/
+#RUN ssh-keygen -t rsa -f /config/.ssh/id_rsa -t rsa -b 2048 -C DOCKER_ABC -q -P "" 
+#RUN chmod 700 /config/.ssh
+#RUN sshpass -p "$MANJAROPASSWORD" ssh -p 60001 brettsalemink@173.29.176.138 'cat >> .ssh/authorized_keys' < /config/.ssh/id_rsa.pub
 #RUN ssh-copy-id -i /config/.ssh/id_rsa -p 60001 brettsalemink@173.29.176.138
 
 # Expose port and run
 EXPOSE 9091
 CMD ["dumb-init", "/etc/openvpn/start.sh"]
+
